@@ -24,7 +24,6 @@ class Biens(db.Model):
 
     @property
     def serialize(self):
-       """Return object data in easily serializable format"""
        return {
            'nom': self.nom,
            'description': self.description,
@@ -55,4 +54,20 @@ def hello():
 @app.route('/biens/<string:ville>/')
 def show_all_by_city(ville):
     biens=Biens.query.filter_by(ville=ville).all()
+    return jsonify(Biens=[i.serialize for i in biens])
+
+
+@app.route('/biens/update/<int:id>', methods=['PUT'])
+def update_biens(id):
+    bien = Biens.query.filter_by(id=id).first()
+    content = request.get_json()
+    bien.description = content['description']
+    bien.nom = content['nom']
+    bien.pieces = content['pieces']
+    bien.proprietaire = content['proprietaire']
+    bien.type = content['type']
+    bien.ville = content['ville']
+    bien.caracteristiques_pieces = content['caracteristiques_pieces']
+    db.session.commit()
+    biens=Biens.query.filter_by(id=id).all()
     return jsonify(Biens=[i.serialize for i in biens])
