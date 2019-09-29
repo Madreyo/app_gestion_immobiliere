@@ -22,6 +22,20 @@ class Biens(db.Model):
         self.caracteristiques_pieces = caracteristiques_pieces
         self.proprietaire = proprietaire
 
+    @property
+    def serialize(self):
+       """Return object data in easily serializable format"""
+       return {
+           'nom': self.nom,
+           'description': self.description,
+           'type': self.type,
+           'ville': self.ville,
+           'pieces': self.pieces,
+           'caracteristiques_pieces': self.caracteristiques_pieces,
+           'proprietaire': self.proprietaire,
+       }
+
+
 class Utilisateurs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(50), nullable=False)
@@ -36,3 +50,9 @@ class Utilisateurs(db.Model):
 @app.route("/")
 def hello():
     return "Hello World!"
+
+
+@app.route('/biens/<string:ville>/')
+def show_all_by_city(ville):
+    biens=Biens.query.filter_by(ville=ville).all()
+    return jsonify(Biens=[i.serialize for i in biens])
