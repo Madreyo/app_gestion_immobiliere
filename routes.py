@@ -71,3 +71,15 @@ def update_biens(id):
     db.session.commit()
     biens=Biens.query.filter_by(id=id).all()
     return jsonify(Biens=[i.serialize for i in biens])
+
+
+@app.route('/utilisateurs/update/<int:id>', methods=['PUT'])
+def update_utilisateur(id):
+    utilisateur = Utilisateurs.query.filter_by(id=id).first()
+    content = request.get_json()
+    utilisateur.nom = content['nom']
+    utilisateur.prenom = content['prenom']
+    utilisateur.date_naissance = content['date_naissance']
+    db.session.commit()
+    utilisateur=Utilisateurs.query.filter_by(id=id).all()
+    return jsonify(Utilisateurs=[i.serialize for i in utilisateur])
