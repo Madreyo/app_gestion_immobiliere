@@ -16,6 +16,12 @@ if __name__ == '__main__':
         if argv[1] == "init_db":
             db.drop_all()
             db.create_all()
+            db.session.add(Utilisateurs("Derle", "Nora", "1987-12-12"))
+            db.session.add(Utilisateurs("Pres", "Jack", "1979-01-01"))
+            db.session.add(Biens("Maison familiale", "Dans un quartier pavillonnaire recherche, avec acces arret de bus et ecoles a moins de 5 minutes a pieds, proche centre ville et ses commodites, 200m^2", "maison", "Poissy", 6, "4 chambres", "Nora Derle"))
+            db.session.add(Biens("Appartement T3", "Tres bien situe dans la ville, ce T3 a tout pour vous satisfaire", "appartement", "Conflans", 3, "2 chambres, 1 cave", "Jacques Pres"))
+            db.session.add(Biens("Villa", "Grande villa", "villa", "Poissy", 7, "5 chambres", "Jacques Pres"))
+            db.session.commit()
             print "Init done"
         else:
             print "Unknown command"
