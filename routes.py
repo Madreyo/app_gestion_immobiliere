@@ -1,13 +1,13 @@
-from datetime import datetime
 from flask import request, jsonify
 from main import db, app, ma
+from datetime import datetime
 
 
 class Utilisateurs(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(50), nullable=False)
     prenom = db.Column(db.String(50), nullable=False)
-    date_naissance = db.Column(db.String(50), nullable=False)
+    date_naissance = db.Column(db.DateTime, nullable=False)
 
     def __init__(self, nom, prenom, date_naissance):
         self.nom = nom
@@ -63,12 +63,15 @@ class Biens(db.Model):
 class BiensSchema(ma.ModelSchema):
     class Meta:
         model = Biens
+    proprietaire = ma.HyperlinkRelated("proprietaire_detail")
 
 
 @app.route("/")
 def hello():
-    return "Hello World!"
-
+    user = Utilisateurs.query.all()
+    schema = UtilisateursSchema(many=True)
+    response = schema.dump(user).data
+    return jsonify(response)
 
 @app.route('/biens/<string:ville>/')
 def show_all_by_city(ville):
@@ -89,11 +92,10 @@ def update_biens(id):
         if bien is None:
             response = {'message': "Le bien a modifier n'existe pas", 'status_code':403}
             return jsonify(response)
-
         bien.description = content['description']
         bien.nom = content['nom']
         bien.pieces = content['pieces']
-        bien.proprietaire = content['proprietaire']
+        bien.proprietaire_id = content['proprietaire_id']
         bien.type = content['type']
         bien.ville = content['ville']
         bien.caracteristiques_pieces = content['caracteristiques_pieces']
@@ -118,7 +120,10 @@ def update_utilisateur(id):
 
         utilisateur.nom = content['nom']
         utilisateur.prenom = content['prenom']
-        utilisateur.date_naissance = content['date_naissance']
+        annee = content['annee']
+        mois = content['mois']
+        jour = content['jour']
+        utilisateur.date_naissance = datetime(annee, mois, jour, 0, 0, 0, 0)
         db.session.commit()
         utilisateur=Utilisateurs.query.filter_by(id=id).all()
         schema = UtilisateursSchema(many=True)
@@ -134,13 +139,20 @@ def add_utilisateur():
     try:
         nom = content['nom']
         prenom = content['prenom']
-        date_naissance = content['date_naissance']
-        db.session.add(Utilisateurs(nom, prenom, date_naissance))
-        db.session.commit()
-        utilisateur = Utilisateurs.query.filter(Utilisateurs.nom==nom, Utilisateurs.prenom==prenom, Utilisateurs.date_naissance==date_naissance).all()
-        schema = UtilisateursSchema(many=True)
-        response = schema.dump(utilisateur).data
-        return jsonify(response)
+        annee = content['annee']
+        mois = content['mois']
+        jour = content['jour']
+        utilisateur = Utilisateurs.query.filter_by(nom=nom, prenom=prenom).first()
+        if utilisateur is None:
+            db.session.add(Utilisateurs(nom, prenom, datetime(annee, mois, jour, 0, 0, 0, 0)))
+            db.session.commit()
+            utilisateur = Utilisateurs.query.filter(Utilisateurs.nom==nom, Utilisateurs.prenom==prenom).all()
+            schema = UtilisateursSchema(many=True)
+            response = schema.dump(utilisateur).data
+            return jsonify(response)
+        else:
+            response = {'message': 'Cet utilisateur a deja ete cree'}
+            return jsonify(response)
     except:
         response = {'message': 'Il faut entrer le nom, le prenom et la date de naissance de l utilisateur a modifier', 'status_code': '400'}
         return jsonify(response)
