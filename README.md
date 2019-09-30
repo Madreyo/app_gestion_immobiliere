@@ -26,3 +26,9 @@ python main.py
 
 - Change the db key in main.cfg
 - Disable debug mode in main.py
+
+# test
+
+```bash
+python tests.py
+```
